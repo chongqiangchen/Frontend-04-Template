@@ -1,0 +1,77 @@
+<style>
+  #board {
+    width: max-content;
+    height: max-content;
+  }
+  .cell {
+    width: 100px;
+    height: 100px;
+    background-color: green;
+    display: inline-block;
+    border: 1px solid white;
+    vertical-align: middle;
+
+    line-height: 100px;
+    font-size: 50px;
+    text-align: center;
+  }
+</style>
+
+<div id="board"></div>
+
+<script src="./utils.js"></script>
+<script src="./main.js"></script>
+<script src="./test.js"></script>
+<script>
+  let chessMap = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+  let chessType = 1;
+
+  // 初始化
+  function show(Len = CONDITION_OF_WIN) {
+    let board = document.getElementById('board');
+    for (let i = 0; i < Len; i++) {
+      for (let j = 0; j < Len; j++) {
+        let cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.id = `${i}_${j}`;
+        cell.innerText = getChess(chessMap[i][j]);
+        board.appendChild(cell);
+      }
+      board.appendChild(document.createElement('br'));
+    }
+    board.addEventListener('click', (e) => {
+      userMove(e);
+    });
+  }
+
+  // 落子
+  function userMove(e) {
+    const { x, y } = getXY(e.target);
+    // 绘制到DOM和记录到Map中
+    e.target.innerText = getChess(chessType);
+    chessMap[x * CONDITION_OF_WIN + y] = chessType;
+
+    if (check(chessMap, chessType)) {
+      alert(getChess(chessType) + ' is winner');
+    }
+
+    chessType = CONDITION_OF_WIN - chessType;
+    computMove();
+  }
+
+  function computMove() {
+    const best = bestChoice(chessMap, chessType);
+    if (best.point) {
+      chessMap[best.point[0] * CONDITION_OF_WIN + best.point[1]] = chessType;
+      drawChessWithXY(best.point[0], best.point[1], chessType);
+    }
+
+    if (check(chessMap, chessType)) {
+      alert(getChess(chessType) + ' is winner');
+    }
+
+    chessType = CONDITION_OF_WIN - chessType;
+  }
+
+  show();
+</script>
