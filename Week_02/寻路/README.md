@@ -6,6 +6,8 @@
         _深度优先搜索_： 会不断向一个地方走，直到遇到障碍物才会回溯，
         如下图，我们如果初始向右查找，它会先找到底部再回溯，用代码简单形容就是：
 
+        ![深度](https://github.com/chongqiangchen/Frontend-04-Template/tree/master/Week_02/img/01.jpg)
+
         ```
           // 使用递归或者堆栈处理（先进后出）
           const stack = [start];
@@ -28,7 +30,9 @@
         ```
 
         _广度优先算法_： 可以想象地震波，一层一层向外，我觉得这个比喻很形象，一般处理就是队列（先进先出），如下图：
-        (img)
+
+        ![广度](https://github.com/chongqiangchen/Frontend-04-Template/tree/master/Week_02/img/02.jpg)
+
         代码简单形容：
 
         ```
@@ -97,12 +101,16 @@
     ```
 
     2. G 其实我们是可以获知的，在每走一步（分直着走和斜着走）去的是时候进行增量，确保 M（当前位置）距离出发点的位置被正确记录，直走：1，斜走：约等于 1.4
-       (img)
+
+       ![image](https://github.com/chongqiangchen/Frontend-04-Template/tree/master/Week_02/img/03.jpg)
+
        可以看到斜走与直走的一步并不一致，故直走为 1， 斜走则为 2 的开方约等于 1.4
+
        ```
         const G_STRAIGHT = 1.0;
         const G_OBLIQUE = 1.4;
        ```
+
     3. 获取 H(M)的时候我们需要考虑 3 种情况：
 
        1. 估值 h 和实际 h’相等，那么我们每次搜索的每一步之后我们能够明确判断到哪个是最优解，最短路径，基本不需要扩展搜索了
