@@ -1,0 +1,98 @@
+<style>
+  .cell {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background-color: gray;
+    border-bottom: 1px solid white;
+    border-right: 1px solid white;
+    vertical-align: middle;
+  }
+  #board {
+    width: 701px;
+  }
+</style>
+
+<div id="board"></div>
+<button onclick="localStorage.setItem('Map', JSON.stringify(Map))">保存</button>
+<button onclick="localStorage.clear()">清空</button>
+<button onclick="findPath(Map, [2,2], [50,50]);">测试</button>
+
+<script src="./utils.js"></script>
+<script src="../drawMap.js"></script>
+<script src="./point.js"></script>
+<script src="./data.js"></script>
+<script src="./sortedQueue.js"></script>
+<script>
+  const Map = localStorage.getItem('Map') ? JSON.parse(localStorage.getItem('Map')) : Array(10000).fill(0);
+  const board = document.getElementById('board');
+
+  draw(Map);
+
+  const OBSTACLES = 1;
+  const VISITED = 2;
+  const G_STRAIGHT = 1.0;
+  const G_OBLIQUE = 1.4;
+
+  async function findPath(Map, start, end) {
+    const startPoint = new Point(start[0], start[1]);
+    const endPoint = new Point(end[0], end[1]);
+    const startData = new Data(startPoint, 0, 0, null);
+    const queue = new SortedQueue([startData], (a, b) => a.f() - b.f());
+
+    async function insert(x, y, curData, distOfG) {
+      if (x < 0 || x >= 100 || y < 0 || y >= 100) return;
+
+      if (Map[100 * y + x]) {
+        return;
+      }
+
+      const point = new Point(x, y);
+      const oldData = queue.find(point).data;
+      board.children[100 * y + x].style.backgroundColor = 'lightgreen';
+      Map[100 * y + x] = VISITED;
+
+      // 如果队列中存在该点相关的data
+      if (oldData) {
+        // 判断G：离起始点距离
+        if (oldData.g > curData.g + distOfG) {
+          oldData.g = curData.g + distOfG;
+          oldData.parent = curData;
+        }
+      } else {
+        const h = hManhattanDistance(point, endPoint);
+        const data = new Data(point, curData.g + distOfG, h, curData);
+        queue.enqueue(data);
+      }
+    }
+
+    while (queue.size()) {
+      const data = queue.dequeue();
+      console.log(data);
+      const { x, y } = data.point;
+
+      if (x === end[0] && y === end[1]) {
+        const path = [];
+        // 反向找出路径
+        for (let pathData = data; pathData != null; ) {
+          const pnt = pathData.point;
+          path.push(pnt);
+          board.children[100 * pnt.y + pnt.x].style.backgroundColor = 'red';
+          pathData = pathData.parent;
+        }
+        console.log(path);
+        return;
+      }
+
+      await insert(x, y + 1, data, G_STRAIGHT);
+      await insert(x, y - 1, data, G_STRAIGHT);
+      await insert(x + 1, y, data, G_STRAIGHT);
+      await insert(x - 1, y, data, G_STRAIGHT);
+
+      await insert(x + 1, y + 1, data, G_OBLIQUE);
+      await insert(x - 1, y - 1, data, G_OBLIQUE);
+      await insert(x + 1, y - 1, data, G_OBLIQUE);
+      await insert(x - 1, y + 1, data, G_OBLIQUE);
+    }
+  }
+</script>
