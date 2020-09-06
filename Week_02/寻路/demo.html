@@ -23,6 +23,7 @@
 <script src="./point.js"></script>
 <script src="./data.js"></script>
 <script src="./sortedQueue.js"></script>
+<script src="./minHeap.js"></script>
 <script>
   const Map = localStorage.getItem('Map') ? JSON.parse(localStorage.getItem('Map')) : Array(10000).fill(0);
   const board = document.getElementById('board');
@@ -38,7 +39,8 @@
     const startPoint = new Point(start[0], start[1]);
     const endPoint = new Point(end[0], end[1]);
     const startData = new Data(startPoint, 0, 0, null);
-    const queue = new SortedQueue([startData], (a, b) => a.f() - b.f());
+    const minHeap = new MinHeap();
+    minHeap.set(startData);
 
     async function insert(x, y, curData, distOfG) {
       if (x < 0 || x >= 100 || y < 0 || y >= 100) return;
@@ -48,7 +50,7 @@
       }
 
       const point = new Point(x, y);
-      const oldData = queue.find(point).data;
+      const oldData = minHeap.find(point);
       board.children[100 * y + x].style.backgroundColor = 'lightgreen';
       Map[100 * y + x] = VISITED;
 
@@ -62,13 +64,12 @@
       } else {
         const h = hManhattanDistance(point, endPoint);
         const data = new Data(point, curData.g + distOfG, h, curData);
-        queue.enqueue(data);
+        minHeap.set(data);
       }
     }
 
-    while (queue.size()) {
-      const data = queue.dequeue();
-      console.log(data);
+    while (minHeap.size()) {
+      const data = minHeap.get();
       const { x, y } = data.point;
 
       if (x === end[0] && y === end[1]) {
@@ -80,7 +81,6 @@
           board.children[100 * pnt.y + pnt.x].style.backgroundColor = 'red';
           pathData = pathData.parent;
         }
-        console.log(path);
         return;
       }
 
