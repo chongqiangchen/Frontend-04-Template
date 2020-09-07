@@ -1,0 +1,130 @@
+<style></style>
+
+<script>
+  const MUL = 'MultiplicativeExpression';
+  const ADD = 'AdditiveExpression';
+  let regexp = /([0-9\.]+)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+  let dictionary = ['Number', 'Whitespace', 'LineTerminator', '*', '/', '+', '-'];
+
+  function* tokenize(source) {
+    let result = null;
+    let lastIndex = 0;
+    while (true) {
+      lastIndex = regexp.lastIndex;
+      result = regexp.exec(source);
+
+      if (!result) break;
+
+      if (regexp.lastIndex - lastIndex > result[0].length) break;
+
+      let token = {
+        type: '',
+        value: '',
+      };
+
+      // 从1开始原因第一个是匹配的数字，后面才是捕获的对应的值
+      for (let i = 1; i < dictionary.length; i++) {
+        if (result[i]) {
+          token.type = dictionary[i - 1];
+        }
+      }
+      token.value = result[0];
+      yield token;
+    }
+    yield {
+      type: 'EOF',
+    };
+  }
+
+  let source = [];
+
+  for (let i of tokenize('10 * 28 + 1 * 20')) {
+    if (i.type !== 'Whitespace') {
+      source.push(i);
+    }
+  }
+
+  function Expression(source) {
+    if (source[0].type === ADD && source[1] && source[1].type === 'EOF') {
+      let node = {
+        type: 'Expression',
+        children: [source.shift(), source.shift()],
+      };
+      source.unshift(node);
+      return node;
+    }
+    AdditiveExpression(source);
+    return Expression(source);
+  }
+
+  function AdditiveExpression(source) {
+    console.log(source);
+    if (source[0].type === MUL) {
+      let node = {
+        type: ADD,
+        children: [source[0]],
+      };
+      source[0] = node;
+      AdditiveExpression(source);
+    }
+
+    if (source[0].type === ADD && source[1] && (source[1].type === '+' || source[1].type === '-')) {
+      let node = {
+        type: ADD,
+        operator: source[1].type,
+        children: [],
+      };
+
+      node.children.push(source.shift());
+      node.children.push(source.shift());
+      MultiplicativeExpression(source);
+      node.children.push(source.shift());
+      source.unshift(node);
+
+      return AdditiveExpression(source);
+    }
+
+    if (source[0].type === ADD) {
+      return source[0];
+    }
+
+    MultiplicativeExpression(source);
+    return AdditiveExpression(source);
+  }
+
+  function MultiplicativeExpression(source) {
+    if (source[0].type === 'Number') {
+      const node = {
+        type: MUL,
+        children: [source[0]],
+      };
+
+      source[0] = node;
+      return MultiplicativeExpression(source);
+    }
+
+    if (source[0].type === MUL && source[1] && (source[1].type === '*' || source[1].type === '/')) {
+      const node = {
+        type: MUL,
+        operator: source[1].type,
+        children: [],
+      };
+
+      node.children.push(source.shift());
+      node.children.push(source.shift());
+      node.children.push(source.shift());
+
+      source.unshift(node);
+
+      return MultiplicativeExpression(source);
+    }
+
+    if (source[0].type === MUL) {
+      return source[0];
+    }
+
+    return MultiplicativeExpression(source);
+  }
+
+  console.log(Expression(source));
+</script>
