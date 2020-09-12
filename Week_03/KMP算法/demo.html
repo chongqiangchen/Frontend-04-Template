@@ -1,0 +1,27 @@
+<script>
+  function KMP(p, source) {
+    const table = [];
+    let i = 0;
+    let j = 1;
+
+    while (j < p.length) {
+      console.log(p[i]);
+      console.log(p[j]);
+      if (p[i] === p[j]) {
+        ++j;
+        ++i;
+        table[j] = i;
+      } else {
+        if (i > 0) {
+          i = table[i] || 0;
+        } else {
+          j++;
+        }
+      }
+    }
+
+    console.log(table);
+  }
+  console.log(11);
+  KMP('abbabc', '');
+</script>
